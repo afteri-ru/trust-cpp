@@ -14,14 +14,14 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=clang-20
-CCC=clang++-20
-CXX=clang++-20
+CC=clang-21
+CCC=clang++-21
+CXX=clang++-21
 FC=gfortran
-AS=lld-20
+AS=lld-21
 
 # Macros
-CND_PLATFORM=CLang-20-Linux
+CND_PLATFORM=CLang_21-Linux
 CND_DLIB_EXT=so
 CND_CONF=UNITTEST
 CND_DISTDIR=dist
@@ -75,11 +75,11 @@ ${OBJECTDIR}/_example.o: _example.cpp memsafe_clang.so nbproject/Makefile-${CND_
 
 circleref.memsafe: circleref.memsafe memsafe_clang.so _example.cpp nbproject/Makefile-${CND_CONF}.mk
 	@echo "\033[1;46;34m"Building circleref.memsafe"\033[0m"
-	clang-20 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang level=warning -Xclang -plugin-arg-memsafe -Xclang circleref-write -fsyntax-only _example.cpp
+	clang++-21 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang level=warning -Xclang -plugin-arg-memsafe -Xclang circleref-write -fsyntax-only _example.cpp
 
 memsafe_clang.so: memsafe_clang.cpp memsafe_plugin.h nbproject/Makefile-${CND_CONF}.mk
 	@echo "\033[1;46;34m"Building a plugin memsafe_clang.so"\033[0m"
-	clang-20 -fPIC -shared -o memsafe_clang.so memsafe_clang.cpp `llvm-config-20 --cppflags --ldflags --system-libs --libs all` -std=c++20  -lyaml-cpp
+	clang++-21 -fPIC -shared -o memsafe_clang.so memsafe_clang.cpp `llvm-config-21 --cppflags --ldflags --system-libs --libs all` -std=c++20  -lyaml-cpp
 
 ${OBJECTDIR}/memsafe_test.o: memsafe_test.cpp memsafe_clang.so nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
