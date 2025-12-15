@@ -705,9 +705,9 @@ TEST(MemSafe, Plugin) {
      * If all check messages are found, the test is considered successful.
      */
 
-    std::string cmd = "clang-20";
+    std::string cmd = "clang-21";
     cmd += " -std=c++20 -ferror-limit=500 ";
-    cmd += " -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe ";
+    cmd += " -Xclang -load -Xclang ../memsafe_clang.so -Xclang -add-plugin -Xclang memsafe ";
     cmd += " -Xclang -plugin-arg-memsafe -Xclang log ";
     cmd += " -Xclang -plugin-arg-memsafe -Xclang circleref-disable";
     cmd += " -c _example.cpp > _example.cpp.log";
@@ -858,7 +858,7 @@ TEST(MemSafe, Plugin) {
 
 TEST(MemSafe, Cycles) {
 
-    const std::string cmd_base = "clang-20 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang log ";
+    const std::string cmd_base = "clang-21 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ../memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang log ";
 
 
     fs::remove(MemSafeFile::SHARED_SCAN_FILE_DEFAULT);

@@ -1,6 +1,6 @@
 #include <vector>
 #include <algorithm>
-#include "memsafe.h"
+#include "../memsafe.h"
 
 using namespace memsafe;
 

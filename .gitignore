@@ -4,6 +4,7 @@ TEMP
 doxygen/*
 output/*
 **/*.pt
+**/Makefile
 contrib/*
 **/.obsidian
 **/CMakeFiles
