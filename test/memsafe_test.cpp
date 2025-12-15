@@ -322,11 +322,11 @@ TEST(MemSafe, Threads) {
     {
         unsigned long long g_count = 0;
         std::thread t1([&]() {
-            for (auto i = 0; i < 1'000'000; ++i)
+            for (auto i = 0; i < 1'000'0000; ++i)
                 ++g_count;
         });
         std::thread t2([&]() {
-            for (auto i = 0; i < 1'000'000; ++i)
+            for (auto i = 0; i < 1'000'0000; ++i)
                 ++g_count;
         });
         t1.join();
