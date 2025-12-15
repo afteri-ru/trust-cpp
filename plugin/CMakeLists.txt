@@ -1,35 +1,26 @@
-# Найдем необходимые компоненты
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
-
-# Попробуем найти LLVM через find_package с компонентами, необходимыми для clang plugin
-find_package(LLVM REQUIRED CONFIG)
-
 # Создадим библиотеку плагина clang
 add_library(memsafe_clang SHARED
     memsafe_clang.cpp
 )
 
-# Добавим пути к заголовочным файлам LLVM
+# Настроим плагин
 target_include_directories(memsafe_clang PRIVATE
     ${LLVM_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${YAML_CPP_INCLUDE_DIRS}
 )
 
-# Добавим определения компилятора
 target_compile_definitions(memsafe_clang PRIVATE ${LLVM_DEFINITIONS})
 
-# Установим свойства цели
 set_target_properties(memsafe_clang PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
     PREFIX ""
     SUFFIX ".so"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
 )
 
-# Линкуем с LLVM библиотеками, которые необходимы для clang plugin
+# Используем общую функцию для установки свойств
+set_common_target_properties(memsafe_clang)
+
 target_link_libraries(memsafe_clang
     LLVMCore
     LLVMSupport
@@ -39,10 +30,9 @@ target_link_libraries(memsafe_clang
 )
 
 # Создадим псевдо-цель для генерации файла circleref.memsafe
-# Используем BYPRODUCTS для лучшей интеграции с системой сборки CMake
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/../test/circleref.memsafe
-    COMMAND ${CMAKE_CXX_COMPILER} -std=c++20 -ferror-limit=500 -I${CMAKE_CURRENT_SOURCE_DIR}/..
+    COMMAND ${CMAKE_CXX_COMPILER} -std=c++20 -ferror-limit=500 -I${CMAKE_CURRENT_SOURCE_DIR}/../test
             -Xclang -load -Xclang $<TARGET_FILE:memsafe_clang>
             -Xclang -add-plugin -Xclang memsafe
             -Xclang -plugin-arg-memsafe -Xclang level=warning

@@ -1,6 +1,3 @@
-# Проверим наличие необходимых компонентов
-find_package(GTest REQUIRED)
-
 # Создадим цель для тестов
 add_executable(memsafe_unittest
     _cycles.cpp
@@ -8,26 +5,24 @@ add_executable(memsafe_unittest
     memsafe_test.cpp
 )
 
-# Установим свойства цели для тестов
+# Настроим тесты
 set_target_properties(memsafe_unittest PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Добавим определения для тестов
+# Используем общую функцию для установки свойств
+set_common_target_properties(memsafe_unittest)
+
 target_compile_definitions(memsafe_unittest PRIVATE
     BUILD_UNITTEST
 )
 
-# Добавим пути к заголовочным файлам
 target_include_directories(memsafe_unittest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_SOURCE_DIR}/../plugin
     ${YAML_CPP_INCLUDE_DIRS}
 )
 
-# Добавим линковку библиотек
 target_link_libraries(memsafe_unittest 
     GTest::GTest 
     GTest::Main 
@@ -35,39 +30,24 @@ target_link_libraries(memsafe_unittest
     pthread
 )
 
-# Добавим пользовательские команды для анализа _cycles.cpp и _example.cpp с использованием импортированной цели
+# Убедимся, что плагин собран перед запуском тестов
+add_dependencies(memsafe_unittest memsafe_clang)
+
+# Добавим пользовательские команды для анализа файлов с использованием плагина
 # Для _cycles.cpp
-add_custom_command(TARGET memsafe_unittest PRE_BUILD
-    COMMAND ${CMAKE_CXX_COMPILER} -std=c++20 -g -DBUILD_UNITTEST -I${CMAKE_CURRENT_SOURCE_DIR}/..
-            -ferror-limit=500 
-            "-Xclang" "-load" "-Xclang" "${CMAKE_CURRENT_SOURCE_DIR}/../memsafe_clang.so"
-            "-Xclang" "-add-plugin" "-Xclang" "memsafe"
-            "-Xclang" "-plugin-arg-memsafe" "-Xclang" "log"
-            "-Xclang" "-plugin-arg-memsafe" "-Xclang" "level=warning"
-            "-Xclang" "-plugin-arg-memsafe" "-Xclang" "circleref-read=${CMAKE_CURRENT_SOURCE_DIR}/circleref.memsafe"
-            -MMD -MP -MF ${CMAKE_CURRENT_BINARY_DIR}/_cycles.d
-            -o ${CMAKE_CURRENT_BINARY_DIR}/_cycles.o
-            -c ${CMAKE_CURRENT_SOURCE_DIR}/_cycles.cpp
-    DEPENDS memsafe_clang circleref_memsafe
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Analyzing _cycles.cpp with memsafe plugin"
+add_memsafe_analysis_command(
+    ${CMAKE_CURRENT_SOURCE_DIR}/_cycles.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/_cycles
+    memsafe_unittest
+    -Xclang -plugin-arg-memsafe -Xclang circleref-read=${CMAKE_CURRENT_SOURCE_DIR}/circleref.memsafe
 )
 
 # Для _example.cpp
-add_custom_command(TARGET memsafe_unittest PRE_BUILD
-    COMMAND ${CMAKE_CXX_COMPILER} -std=c++20 -g -DBUILD_UNITTEST -I${CMAKE_CURRENT_SOURCE_DIR}/..
-            -ferror-limit=500 
-            "-Xclang" "-load" "-Xclang" "${CMAKE_CURRENT_SOURCE_DIR}/../memsafe_clang.so"
-            "-Xclang" "-add-plugin" "-Xclang" "memsafe"
-            "-Xclang" "-plugin-arg-memsafe" "-Xclang" "log"
-            "-Xclang" "-plugin-arg-memsafe" "-Xclang" "level=warning"
-            "-Xclang" "-plugin-arg-memsafe" "-Xclang" "circleref-disable"
-            -MMD -MP -MF ${CMAKE_CURRENT_BINARY_DIR}/_example.d
-            -o ${CMAKE_CURRENT_BINARY_DIR}/_example.o
-            -c ${CMAKE_CURRENT_SOURCE_DIR}/_example.cpp
-    DEPENDS memsafe_clang
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Analyzing _example.cpp with memsafe plugin"
+add_memsafe_analysis_command(
+    ${CMAKE_CURRENT_SOURCE_DIR}/_example.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/_example
+    memsafe_unittest
+    -Xclang -plugin-arg-memsafe -Xclang circleref-disable
 )
 
 # Создадим цель для запуска тестов

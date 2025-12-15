@@ -9,11 +9,41 @@ set(CMAKE_CXX_COMPILER clang++-21)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Включим параллельную сборку
-set(CMAKE_BUILD_PARALLEL_LEVEL 4)
-
 # Добавим флаги оптимизации
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+
+# Найдем необходимые компоненты
+find_package(LLVM REQUIRED CONFIG)
+find_package(GTest REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+
+# Определим функцию для установки общих свойств целей
+function(set_common_target_properties TARGET_NAME)
+    set_target_properties(${TARGET_NAME} PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+    )
+endfunction()
+
+
+# Определим функцию для анализа файлов с использованием плагина
+function(add_memsafe_analysis_command SOURCE_FILE OUTPUT_FILE DEPENDS_TARGET ARG1 ARG2)
+    add_custom_command(TARGET ${DEPENDS_TARGET} PRE_BUILD
+        COMMAND ${CMAKE_CXX_COMPILER} -std=c++20 -ferror-limit=500 -g -DBUILD_UNITTEST -I${CMAKE_CURRENT_SOURCE_DIR}
+                -Xclang -load -Xclang "${CMAKE_SOURCE_DIR}/memsafe_clang.so"
+                -Xclang -add-plugin -Xclang memsafe
+                -Xclang -plugin-arg-memsafe -Xclang log
+                -Xclang -plugin-arg-memsafe -Xclang level=warning
+                ${ARG1} ${ARG2}
+                -MMD -MP -MF ${OUTPUT_FILE}.d
+                -o ${OUTPUT_FILE}.o
+                -c ${SOURCE_FILE}
+        DEPENDS ${DEPENDS_TARGET} ${DEPENDS_TARGET}_memsafe
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Analyzing ${SOURCE_FILE} with memsafe plugin"
+    )
+endfunction()
 
 # Добавим подпроекты
 add_subdirectory(plugin)
