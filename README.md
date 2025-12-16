@@ -1,4 +1,4 @@
-# New **trust-cpp** branch 
+# New **trusted-cpp** branch 
 
 - Реализация концепции безопасной разработки на основе гарантий языка для С++ https://habr.com/ru/articles/964816/    
 - Implementing the concept of safe software development based on language guarantees for C++  https://www.reddit.com/r/trust_lang/comments/1otk09j/programming_language_guarantees_as_a_base_for/ 

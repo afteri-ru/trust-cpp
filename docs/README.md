@@ -1,4 +1,4 @@
-# Trust-cpp - is a project that guarantees safe software development for C++ at the source code level
+# Trusted-cpp - is a project that guarantees safe software development for C++ at the source code level
 
 ```
 If code compiles without errors, then it is guaranteed to be free of certain classes of errors.
