@@ -1,0 +1,7 @@
+"configurations": [
+{
+      "defines":[
+       "BUILD_UNITTEST"
+   ]
+}
+]

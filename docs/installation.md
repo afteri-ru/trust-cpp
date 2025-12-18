@@ -40,14 +40,14 @@ cmake ..
 make
 ```
 
-This will build both the Clang plugin (`memsafe_clang.so`) and the test executable.
+This will build both the Clang plugin (`trusted-cpp_clang.so`) and the test executable.
 
 ## Using the Plugin
 
 After building, you can use the plugin with clang++ to analyze your C++ code:
 
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable your_file.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable your_file.cpp
 ```
 
 Replace `your_file.cpp` with the path to your C++ source file.
@@ -67,18 +67,18 @@ For circular reference analysis, you'll need to run the plugin twice:
 Example for circular reference analysis:
 ```bash
 # First pass
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-write -fsyntax-only your_file.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-write -fsyntax-only your_file.cpp
 
 # Second pass
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-read your_file.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-read your_file.cpp
 ```
 
 ## Using the Library
 
-Include the `memsafe.h` header in your C++ files to use the library features:
+Include the `trust.h` header in your C++ files to use the library features:
 
 ```cpp
-#include "memsafe.h"
+#include "trust.h"
 
 // Your code here
 ```
@@ -90,7 +90,7 @@ The header-only library provides enhanced smart pointer types and thread safety 
 To run the tests, build the test executable and run it:
 
 ```bash
-./memsafe_test
+./trusted-cpp_test
 ```
 
 This will execute all the unit tests for the Trusted-CPP library and plugin.

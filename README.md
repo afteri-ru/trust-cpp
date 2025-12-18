@@ -98,7 +98,7 @@ Or disable the circular reference analyzer completely with the '--circleref-disa
 Command line for compiling a file with clang and using a plugin
 
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 ```
 
 ### Output of the plugin with  pointer invalidation control:
@@ -172,7 +172,7 @@ since it only parses the AST, but does not make any corrections to it.
 <summary> Show output: </summary>
 
 ```bash
-clang++-20 -std=c++26 -ferror-limit=500 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++-20 -std=c++26 -ferror-limit=500 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 
 ...
 
@@ -181,7 +181,7 @@ clang++-20 -std=c++26 -ferror-limit=500 -Xclang -load -Xclang ./memsafe_clang.so
 
 
 ## Feedback
-If you have any suggestions for the development and improvement of the project, join or [write](https://github.com/rsashka/memsafe/discussions).
+If you have any suggestions for the development and improvement of the project, join or [write](https://github.com/rsashka/trust/discussions).
 
 
 ---
@@ -266,7 +266,7 @@ If you have any suggestions for the development and improvement of the project, 
 Командная строка компиляции файла с помощью clang с загрузкой плагина
 
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 ```
 
 ### Вывод плагина с контролем инвалидации ссылок:
@@ -337,7 +337,7 @@ _cycles.cpp:57:22: error: Field type raw pointer
 <summary>Показать вывод</summary>
 
 ```bash
-clang++-20 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++-20 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 
 
 ...
@@ -348,5 +348,5 @@ clang++-20 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ./memsafe_clang.so
 
 
 ## Обратная связь
-Если у вас есть предложения по развитию и улучшению проекта, присоединяйтесь или [пишите](https://github.com/rsashka/memsafe/discussions)
+Если у вас есть предложения по развитию и улучшению проекта, присоединяйтесь или [пишите](https://github.com/rsashka/trust/discussions)
 

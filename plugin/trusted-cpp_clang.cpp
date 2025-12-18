@@ -1,4 +1,4 @@
-#include "memsafe_plugin.h"
+#include "trusted-cpp_plugin.h"
 
 #include "llvm/Support/raw_ostream.h"
 #include "clang/Basic/Diagnostic.h"
@@ -32,16 +32,16 @@
 
 using namespace clang;
 using namespace clang::ast_matchers;
-using namespace memsafe;
+using namespace trust;
 
 
 namespace {
 
 
     /**
-     * @def MemSafePlugin
+     * @def TrustPlugin
      * 
-     * The MemSafePlugin class is made as a RecursiveASTVisitor template for the following reasons:
+     * The TrustPlugin class is made as a RecursiveASTVisitor template for the following reasons:
      * - AST traversal occurs from top to bottom through all leaves, which allows to dynamically create and clear context information.
      * Whereas when searching for matches using AST Matcher, MatchCallback only called for the found nodes,
      * but clearing the necessary context information for each call is very expensive.
@@ -57,24 +57,24 @@ namespace {
      * 
      */
 
-    class MemSafePlugin;
-    static std::unique_ptr<MemSafePlugin> plugin;
-    static std::unique_ptr<MemSafeFile> scaner;
+    class TrustPlugin;
+    static std::unique_ptr<TrustPlugin> plugin;
+    static std::unique_ptr<TrustFile> scaner;
 
     /**
-     * @def MemSafeLogger
+     * @def TrustLogger
      * 
      * Container for addeded attributes with a processing mark 
      * (so as not to miss unprocessed attributes) and plugin analyzer log.
      */
 
-    class MemSafeLogger {
+    class TrustLogger {
         const CompilerInstance &m_ci;
         std::map<SourceLocation, bool> m_attrs;
         std::vector<std::pair<SourceLocation, std::string>> m_logs;
     public:
 
-        MemSafeLogger(const CompilerInstance &ci) : m_ci(ci) {
+        TrustLogger(const CompilerInstance &ci) : m_ci(ci) {
         }
 
         void Log(SourceLocation loc, std::string str) {
@@ -118,7 +118,7 @@ namespace {
             //            out << "\n";
 
 
-            out << MEMSAFE_KEYWORD_START_LOG;
+            out << TRUST_KEYWORD_START_LOG;
             for (auto &elem : m_logs) {
                 out << LocToStr(elem.first);
                 out << ": " << elem.second << "\n";
@@ -132,27 +132,27 @@ namespace {
         }
     };
 
-    static std::unique_ptr<MemSafeLogger> logger;
+    static std::unique_ptr<TrustLogger> logger;
 
     /**
-     * @def MemSafeAttrInfo
+     * @def TrustAttrInfo
      * 
      * Class for applies a custom attribute to any declaration 
      * or expression without examining the arguments 
      * (only the number of arguments and their type are checked).
      */
 
-    struct MemSafeAttrInfo : public ParsedAttrInfo {
+    struct TrustAttrInfo : public ParsedAttrInfo {
 
-        MemSafeAttrInfo() {
+        TrustAttrInfo() {
 
             OptArgs = 3;
 
             static constexpr Spelling S[] = {
-                {ParsedAttr::AS_GNU, TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE)},
-                {ParsedAttr::AS_C23, TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE)},
-                {ParsedAttr::AS_CXX11, TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE)},
-                {ParsedAttr::AS_CXX11, "::" TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE)},
+                {ParsedAttr::AS_GNU, TO_STR(TRUST_KEYWORD_ATTRIBUTE)},
+                {ParsedAttr::AS_C23, TO_STR(TRUST_KEYWORD_ATTRIBUTE)},
+                {ParsedAttr::AS_CXX11, TO_STR(TRUST_KEYWORD_ATTRIBUTE)},
+                {ParsedAttr::AS_CXX11, "::" TO_STR(TRUST_KEYWORD_ATTRIBUTE)},
             };
             Spellings = S;
         }
@@ -163,7 +163,7 @@ namespace {
 
                 S.Diag(Attr.getLoc(), S.getDiagnostics().getCustomDiagID(
                         DiagnosticsEngine::Error,
-                        "The attribute '" TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE) "' expects two or three string literals as arguments."));
+                        "The attribute '" TO_STR(TRUST_KEYWORD_ATTRIBUTE) "' expects two or three string literals as arguments."));
 
                 return nullptr;
             }
@@ -191,7 +191,7 @@ namespace {
                 logger->AttrAdd(Attr.getLoc());
             }
 
-            return AnnotateAttr::Create(S.Context, TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE), ArgsBuf.data(), ArgsBuf.size(), Attr.getRange());
+            return AnnotateAttr::Create(S.Context, TO_STR(TRUST_KEYWORD_ATTRIBUTE), ArgsBuf.data(), ArgsBuf.size(), Attr.getRange());
         }
 
         AttrHandling handleDeclAttribute(Sema &S, Decl *D, const ParsedAttr &Attr) const override {
@@ -473,7 +473,7 @@ namespace {
 
         std::string Dump(const SourceLocation &loc, std::string_view filter) {
 
-            std::string result = MEMSAFE_KEYWORD_START_DUMP;
+            std::string result = TRUST_KEYWORD_START_DUMP;
             if (loc.isValid()) {
                 if (loc.isMacroID()) {
                     result += m_CI.getSourceManager().getExpansionLoc(loc).printToString(m_CI.getSourceManager());
@@ -589,38 +589,38 @@ namespace {
         NOT_SHARED = 4,
     };
 
-    class MemSafePlugin : public RecursiveASTVisitor<MemSafePlugin> {
+    class TrustPlugin : public RecursiveASTVisitor<TrustPlugin> {
     public:
-        static inline const char * ERROR_TYPE = MEMSAFE_KEYWORD_ERROR "-type";
-        static inline const char * WARNING_TYPE = MEMSAFE_KEYWORD_WARNING "-type";
+        static inline const char * ERROR_TYPE = TRUST_KEYWORD_ERROR "-type";
+        static inline const char * WARNING_TYPE = TRUST_KEYWORD_WARNING "-type";
 
-        static inline const char * AUTO_TYPE = MEMSAFE_KEYWORD_AUTO_TYPE;
-        static inline const char * SHARED_TYPE = MEMSAFE_KEYWORD_SHARED_TYPE;
-        static inline const char * INVALIDATE_FUNC = MEMSAFE_KEYWORD_INVALIDATE_FUNC;
+        static inline const char * AUTO_TYPE = TRUST_KEYWORD_AUTO_TYPE;
+        static inline const char * SHARED_TYPE = TRUST_KEYWORD_SHARED_TYPE;
+        static inline const char * INVALIDATE_FUNC = TRUST_KEYWORD_INVALIDATE_FUNC;
 
         static inline const std::set<std::string> attArgs{SHARED_TYPE, AUTO_TYPE, INVALIDATE_FUNC};
 
 
-        // The first string arguments in the `memsafe` attribute for working and managing the plugin
-        static inline const char * PROFILE = MEMSAFE_KEYWORD_PROFILE;
-        static inline const char * STATUS = MEMSAFE_KEYWORD_STATUS;
-        static inline const char * LEVEL = MEMSAFE_KEYWORD_LEVEL;
+        // The first string arguments in the `trust` attribute for working and managing the plugin
+        static inline const char * PROFILE = TRUST_KEYWORD_PROFILE;
+        static inline const char * STATUS = TRUST_KEYWORD_STATUS;
+        static inline const char * LEVEL = TRUST_KEYWORD_LEVEL;
 
-        static inline const char * ERROR = MEMSAFE_KEYWORD_ERROR;
-        static inline const char * WARNING = MEMSAFE_KEYWORD_WARNING;
-        static inline const char * NOTE = MEMSAFE_KEYWORD_NOTE;
-        static inline const char * REMARK = MEMSAFE_KEYWORD_REMARK;
-        static inline const char * IGNORED = MEMSAFE_KEYWORD_IGNORED;
+        static inline const char * ERROR = TRUST_KEYWORD_ERROR;
+        static inline const char * WARNING = TRUST_KEYWORD_WARNING;
+        static inline const char * NOTE = TRUST_KEYWORD_NOTE;
+        static inline const char * REMARK = TRUST_KEYWORD_REMARK;
+        static inline const char * IGNORED = TRUST_KEYWORD_IGNORED;
 
-        static inline const char * BASELINE = MEMSAFE_KEYWORD_BASELINE;
-        static inline const char * UNSAFE = MEMSAFE_KEYWORD_UNSAFE;
-        static inline const char * PRINT_AST = MEMSAFE_KEYWORD_PRINT_AST;
-        static inline const char * PRINT_DUMP = MEMSAFE_KEYWORD_PRINT_DUMP;
+        static inline const char * BASELINE = TRUST_KEYWORD_BASELINE;
+        static inline const char * UNSAFE = TRUST_KEYWORD_UNSAFE;
+        static inline const char * PRINT_AST = TRUST_KEYWORD_PRINT_AST;
+        static inline const char * PRINT_DUMP = TRUST_KEYWORD_PRINT_DUMP;
 
-        static inline const char * STATUS_ENABLE = MEMSAFE_KEYWORD_ENABLE;
-        static inline const char * STATUS_DISABLE = MEMSAFE_KEYWORD_DISABLE;
-        static inline const char * STATUS_PUSH = MEMSAFE_KEYWORD_PUSH;
-        static inline const char * STATUS_POP = MEMSAFE_KEYWORD_POP;
+        static inline const char * STATUS_ENABLE = TRUST_KEYWORD_ENABLE;
+        static inline const char * STATUS_DISABLE = TRUST_KEYWORD_DISABLE;
+        static inline const char * STATUS_PUSH = TRUST_KEYWORD_PUSH;
+        static inline const char * STATUS_POP = TRUST_KEYWORD_POP;
 
         std::set<std::string> m_listFirstArg{PROFILE, STATUS, LEVEL, UNSAFE, SHARED_TYPE, AUTO_TYPE, INVALIDATE_FUNC, WARNING_TYPE, ERROR_TYPE, BASELINE, PRINT_AST, PRINT_DUMP};
         std::set<std::string> m_listStatus{STATUS_ENABLE, STATUS_DISABLE, STATUS_PUSH, STATUS_POP};
@@ -631,7 +631,7 @@ namespace {
         typedef std::variant<const CXXRecordDecl *, std::string> LocationType;
 
         bool m_is_cyclic_analysis;
-        MemSafeFile::ClassReadType m_classes;
+        TrustFile::ClassReadType m_classes;
         ClassListType m_not_shared_class;
 
         /**
@@ -668,13 +668,13 @@ namespace {
 
         LifeTimeScope m_scopes;
 
-        memsafe::StringMatcher m_dump_matcher;
+        trust::StringMatcher m_dump_matcher;
         SourceLocation m_dump_location;
         SourceLocation m_trace_location;
 
         const CompilerInstance &m_CI;
 
-        MemSafePlugin(const CompilerInstance &instance) :
+        TrustPlugin(const CompilerInstance &instance) :
         m_CI(instance), m_scopes(instance), line_base(0), line_number(0) {
             // Zero level for static variables
             m_scopes.PushScope(SourceLocation(), std::monostate(), SourceLocation());
@@ -689,18 +689,18 @@ namespace {
         }
 
         void clear() {
-            //            MemSafePlugin empty(m_CI);
+            //            TrustPlugin empty(m_CI);
             //            std::swap(*this, empty);
         }
 
         void dump(raw_ostream & out) {
-            out << "\n#memsafe-config\n";
+            out << "\n#trust-config\n";
             out << "error-type: " << makeHelperString(m_error_type) << "\n";
             out << "warning-type: " << makeHelperString(m_warning_type) << "\n";
-            out << MEMSAFE_KEYWORD_AUTO_TYPE ": " << makeHelperString(m_auto_type) << "\n";
-            out << MEMSAFE_KEYWORD_SHARED_TYPE ": " << makeHelperString(m_shared_type) << "\n";
+            out << TRUST_KEYWORD_AUTO_TYPE ": " << makeHelperString(m_auto_type) << "\n";
+            out << TRUST_KEYWORD_SHARED_TYPE ": " << makeHelperString(m_shared_type) << "\n";
             out << "not-shared-classes: " << makeHelperString(m_not_shared_class) << "\n";
-            out << MEMSAFE_KEYWORD_INVALIDATE_FUNC ": " << makeHelperString(m_invalidate_func) << "\n";
+            out << TRUST_KEYWORD_INVALIDATE_FUNC ": " << makeHelperString(m_invalidate_func) << "\n";
             out << "\n";
         }
 
@@ -836,7 +836,7 @@ namespace {
             }
 
             static const char * LEVEL_ERROR_MESSAGE = "Required behavior not recognized! Allowed values: '"
-                    MEMSAFE_KEYWORD_ERROR "', '" "', '" MEMSAFE_KEYWORD_WARNING "' or '" MEMSAFE_KEYWORD_IGNORED "'.";
+                    TRUST_KEYWORD_ERROR "', '" "', '" TRUST_KEYWORD_WARNING "' or '" TRUST_KEYWORD_IGNORED "'.";
 
             if (result.empty()) {
                 if (first.compare(STATUS) == 0) {
@@ -878,7 +878,7 @@ namespace {
                 } else if (first.compare(WARNING_TYPE) == 0) {
                     m_warning_type.emplace(second.begin());
                 } else if (first.compare(SHARED_TYPE) == 0) {
-                    m_shared_type.emplace(second.begin(), MemSafeLogger::LocToStr(loc, m_CI.getSourceManager()));
+                    m_shared_type.emplace(second.begin(), TrustLogger::LocToStr(loc, m_CI.getSourceManager()));
                 } else if (first.compare(AUTO_TYPE) == 0) {
                     m_auto_type.emplace(second.begin());
                 } else if (first.compare(INVALIDATE_FUNC) == 0) {
@@ -910,7 +910,7 @@ namespace {
                 return std::get<std::string>(loc);
             }
             assert(std::holds_alternative<const CXXRecordDecl *>(loc));
-            return MemSafeLogger::LocToStr(std::get<const CXXRecordDecl *>(loc)->getLocation(), m_CI.getSourceManager());
+            return TrustLogger::LocToStr(std::get<const CXXRecordDecl *>(loc)->getLocation(), m_CI.getSourceManager());
         }
 
         void setCyclicAnalysis(bool status) {
@@ -1327,7 +1327,7 @@ namespace {
         }
 
         std::pair<std::string, std::string> parseAttr(const AnnotateAttr * const attr) {
-            if (!attr || attr->getAnnotation() != TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE) || attr->args_size() != 2) {
+            if (!attr || attr->getAnnotation() != TO_STR(TRUST_KEYWORD_ATTRIBUTE) || attr->args_size() != 2) {
                 return pair_empty;
             }
 
@@ -1422,7 +1422,7 @@ namespace {
         }
 
         /*
-         * @ref MEMSAFE_DUMP
+         * @ref TRUSTED_DUMP
          */
         void checkDumpFilter(const Decl * decl) {
             if (decl) {
@@ -1726,7 +1726,7 @@ namespace {
 
                         if (!caller.empty()) {
                             if (m_invalidate_func.find(caller) != m_invalidate_func.end()) {
-                                LogOnly(ref->getLocation(), std::format("Call {} '{}'", MEMSAFE_KEYWORD_INVALIDATE_FUNC, caller));
+                                LogOnly(ref->getLocation(), std::format("Call {} '{}'", TRUST_KEYWORD_INVALIDATE_FUNC, caller));
                             } else {
                                 caller.clear();
                             }
@@ -1978,7 +1978,7 @@ namespace {
         bool Traverse ## name (name * arg) { \
             if (isEnabledStatus()) { \
                 m_scopes.PushScope(arg->getEndLoc(), arg); \
-                RecursiveASTVisitor<MemSafePlugin>::Traverse ## name (arg); \
+                RecursiveASTVisitor<TrustPlugin>::Traverse ## name (arg); \
                 m_scopes.PopScope(); \
             } \
             return true; \
@@ -2034,7 +2034,7 @@ namespace {
                     }
                 }
 
-                RecursiveASTVisitor<MemSafePlugin>::TraverseCXXRecordDecl(decl);
+                RecursiveASTVisitor<TrustPlugin>::TraverseCXXRecordDecl(decl);
 
                 if (!scaner) {
                     m_scopes.PopScope();
@@ -2043,7 +2043,7 @@ namespace {
                 return true;
             }
 
-            return RecursiveASTVisitor<MemSafePlugin>::TraverseCXXRecordDecl(decl);
+            return RecursiveASTVisitor<TrustPlugin>::TraverseCXXRecordDecl(decl);
         }
 
         /*
@@ -2161,7 +2161,7 @@ namespace {
                 }
             }
 
-            return RecursiveASTVisitor<MemSafePlugin>::TraverseVarDecl(var);
+            return RecursiveASTVisitor<TrustPlugin>::TraverseVarDecl(var);
         }
 
         bool TraverseParmVarDecl(ParmVarDecl * param) {
@@ -2195,7 +2195,7 @@ namespace {
 
                     m_scopes.PushScope(stmt->getEndLoc(), std::monostate(), checkUnsafeBlock(attrStmt));
 
-                    RecursiveASTVisitor<MemSafePlugin>::TraverseStmt(stmt);
+                    RecursiveASTVisitor<TrustPlugin>::TraverseStmt(stmt);
 
                     m_scopes.PopScope();
 
@@ -2204,7 +2204,7 @@ namespace {
                 }
 
                 // Recursive traversal of statements only when the plugin is enabled
-                RecursiveASTVisitor<MemSafePlugin>::TraverseStmt(stmt);
+                RecursiveASTVisitor<TrustPlugin>::TraverseStmt(stmt);
             }
 
             return true;
@@ -2226,7 +2226,7 @@ namespace {
 
                     m_scopes.PushScope(D->getLocation(), func, m_scopes.testUnsafe());
 
-                    RecursiveASTVisitor<MemSafePlugin>::TraverseDecl(D);
+                    RecursiveASTVisitor<TrustPlugin>::TraverseDecl(D);
 
                     m_scopes.PopScope();
                     return true;
@@ -2236,7 +2236,7 @@ namespace {
 
             // Enabling and disabling the plugin is implemented using declarations, 
             // so declarations are always processed.
-            RecursiveASTVisitor<MemSafePlugin>::TraverseDecl(D);
+            RecursiveASTVisitor<TrustPlugin>::TraverseDecl(D);
 
             return true;
         }
@@ -2250,7 +2250,7 @@ namespace {
      * 
      */
 
-    class MemSafePluginASTConsumer : public ASTConsumer {
+    class TrustPluginASTConsumer : public ASTConsumer {
     public:
 
         void HandleTranslationUnit(ASTContext &context) override {
@@ -2275,10 +2275,10 @@ namespace {
                      */
 
 
-                    MemSafeFile::ClassReadType classes;
-                    MemSafePlugin::ClassListType parents;
-                    MemSafePlugin::ClassListType fields;
-                    MemSafeFile::ClassRead shared;
+                    TrustFile::ClassReadType classes;
+                    TrustPlugin::ClassListType parents;
+                    TrustPlugin::ClassListType fields;
+                    TrustFile::ClassRead shared;
 
                     for (auto elem : plugin->m_shared_type) {
                         if (const CXXRecordDecl ** cls = std::get_if<const CXXRecordDecl *>(&elem.second)) {
@@ -2292,17 +2292,17 @@ namespace {
 
                                 shared.parents.clear();
                                 for (auto par_elem : parents) {
-                                    shared.parents[par_elem.first] = MemSafeLogger::LocToStr(par_elem.second.second, context.getSourceManager());
+                                    shared.parents[par_elem.first] = TrustLogger::LocToStr(par_elem.second.second, context.getSourceManager());
                                 }
 
                                 plugin->reduceSharedList(fields, false);
 
                                 shared.fields.clear();
                                 for (auto fil_elem : fields) {
-                                    shared.fields[fil_elem.first] = MemSafeLogger::LocToStr(fil_elem.second.second, context.getSourceManager());
+                                    shared.fields[fil_elem.first] = TrustLogger::LocToStr(fil_elem.second.second, context.getSourceManager());
                                 }
 
-                                shared.comment = MemSafeLogger::LocToStr((*cls)->getLocation(), context.getSourceManager());
+                                shared.comment = TrustLogger::LocToStr((*cls)->getLocation(), context.getSourceManager());
                                 classes[(*cls)->getQualifiedNameAsString()] = shared;
 
                             }
@@ -2314,7 +2314,7 @@ namespace {
                     for (auto elem : plugin->m_not_shared_class) {
                         if (plugin->m_shared_type.find(elem.first) == plugin->m_shared_type.end()) {
                             shared.comment = "Not shared type at: ";
-                            shared.comment += MemSafeLogger::LocToStr(elem.second.second, context.getSourceManager());
+                            shared.comment += TrustLogger::LocToStr(elem.second.second, context.getSourceManager());
                             classes[elem.first] = shared;
                         }
                     }
@@ -2343,7 +2343,7 @@ namespace {
      * 
      */
 
-    class MemSafePluginASTAction : public PluginASTAction {
+    class TrustPluginASTAction : public PluginASTAction {
     public:
 
         /* Three types of plugin execution:
@@ -2366,7 +2366,7 @@ namespace {
 
         std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &Compiler, StringRef InFile) override {
 
-            std::unique_ptr<MemSafePluginASTConsumer> obj = std::unique_ptr<MemSafePluginASTConsumer>(new MemSafePluginASTConsumer());
+            std::unique_ptr<TrustPluginASTConsumer> obj = std::unique_ptr<TrustPluginASTConsumer>(new TrustPluginASTConsumer());
 
             if (m_shared_disabled) {
 
@@ -2376,12 +2376,12 @@ namespace {
             } else if (!m_shared_write.empty()) {
 
                 PrintColor(llvm::outs(), "Write the circular reference analysis data to file {}", m_shared_write);
-                scaner = std::unique_ptr<MemSafeFile>(new MemSafeFile(m_shared_write, InFile.str()));
+                scaner = std::unique_ptr<TrustFile>(new TrustFile(m_shared_write, InFile.str()));
 
             } else if (!m_shared_read.empty()) {
 
                 PrintColor(llvm::outs(), "Read the circular reference analysis data from {}", m_shared_read);
-                MemSafeFile read(m_shared_read, InFile.str());
+                TrustFile read(m_shared_read, InFile.str());
 
                 // Read the list of classes present in other files (translation units).
                 read.ReadFile(plugin->m_classes);
@@ -2400,7 +2400,7 @@ namespace {
         bool ParseArgs(const CompilerInstance &CI, const std::vector<std::string> &args) override {
 
             m_shared_disabled = false;
-            plugin = std::unique_ptr<MemSafePlugin>(new MemSafePlugin(CI));
+            plugin = std::unique_ptr<TrustPlugin>(new TrustPlugin(CI));
 
             llvm::outs().SetUnbuffered();
             llvm::errs().SetUnbuffered();
@@ -2423,7 +2423,7 @@ namespace {
                 if (!message.empty()) {
                     if (first.compare("log") == 0) {
 
-                        logger = std::unique_ptr<MemSafeLogger>(new MemSafeLogger(CI));
+                        logger = std::unique_ptr<TrustLogger>(new TrustLogger(CI));
                         PrintColor(llvm::outs(), "Enable dump and process logger");
 
                     } else if (first.compare("circleref-disable") == 0) {
@@ -2441,7 +2441,7 @@ namespace {
                             return false;
                         }
 
-                        m_shared_write = second.empty() ? MemSafeFile::SHARED_SCAN_FILE_DEFAULT : second;
+                        m_shared_write = second.empty() ? TrustFile::SHARED_SCAN_FILE_DEFAULT : second;
 
                     } else if (first.compare("circleref-read") == 0) {
 
@@ -2450,7 +2450,7 @@ namespace {
                             return false;
                         }
 
-                        m_shared_read = second.empty() ? MemSafeFile::SHARED_SCAN_FILE_DEFAULT : second;
+                        m_shared_read = second.empty() ? TrustFile::SHARED_SCAN_FILE_DEFAULT : second;
 
                     } else {
                         llvm::errs() << "Unknown plugin argument: '" << elem << "'!\n";
@@ -2471,7 +2471,7 @@ namespace {
     };
 }
 
-static ParsedAttrInfoRegistry::Add<MemSafeAttrInfo> A(TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE), "Memory safety plugin control attribute");
-static FrontendPluginRegistry::Add<MemSafePluginASTAction> S(TO_STR(MEMSAFE_KEYWORD_ATTRIBUTE), "Memory safety plugin");
+static ParsedAttrInfoRegistry::Add<TrustAttrInfo> A(TO_STR(TRUST_KEYWORD_ATTRIBUTE), "Memory safety plugin control attribute");
+static FrontendPluginRegistry::Add<TrustPluginASTAction> S(TO_STR(TRUST_KEYWORD_ATTRIBUTE), "Memory safety plugin");
 
 

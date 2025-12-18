@@ -13,5 +13,5 @@
 - Upon task completion, the final report should include the model name, the initial task, and all summary statistics for interactions with the model.
 
 ## File Rules
-- `memsafe_clang.cpp` is a clang plugin designed for compilation into a dynamic library.
-- `memsafe_test.cpp` contains tests created using the Google Test Framework, designed to be compiled into an executable program.
+- `trusted-cpp_clang.cpp` is a clang plugin designed for compilation into a dynamic library.
+- `trusted-cpp_test.cpp` contains tests created using the Google Test Framework, designed to be compiled into an executable program.

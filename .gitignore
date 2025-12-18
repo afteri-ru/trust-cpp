@@ -1,5 +1,6 @@
-**/*.memsafe
-memsafe_unittest
+**/*.trust
+**/*circleref*
+trusted-cpp_unittest
 TEMP
 doxygen/*
 output/*

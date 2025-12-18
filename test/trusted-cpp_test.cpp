@@ -8,14 +8,13 @@
 #include <filesystem>
 #include <chrono>
 
-#include "memsafe.h"
-#include "memsafe_plugin.h"
+#include "trusted-cpp_plugin.h"
 
-using namespace memsafe;
+using namespace trust;
 using namespace std::chrono_literals;
 namespace fs = std::filesystem;
 
-TEST(MemSafe, Sizes) {
+TEST(Trust, Sizes) {
 
     EXPECT_EQ(32, sizeof (std::string));
     EXPECT_EQ(32, sizeof (std::wstring));
@@ -23,7 +22,7 @@ TEST(MemSafe, Sizes) {
     EXPECT_EQ(40, sizeof (std::variant<std::string, std::wstring>));
 
     EXPECT_EQ(16, sizeof (std::runtime_error));
-    EXPECT_EQ(16, sizeof (memsafe_error));
+    EXPECT_EQ(16, sizeof (trust_error));
 
     class TestClassV0 {
 
@@ -152,7 +151,7 @@ TEST(MemSafe, Sizes) {
     EXPECT_EQ(8, sizeof (Locker<uint64_t, uint64_t&>));
 }
 
-TEST(MemSafe, Cast) {
+TEST(TrustedCPP, Cast) {
 
     EXPECT_EQ(1, sizeof (bool));
     EXPECT_EQ(1, sizeof (Value<bool>));
@@ -272,7 +271,7 @@ public:
 
 #pragma clang attribute pop
 
-TEST(MemSafe, Class) {
+TEST(TrustedCPP, Class) {
 
     TestClass1 cls;
 
@@ -317,7 +316,7 @@ TEST(MemSafe, Class) {
 
 };
 
-TEST(MemSafe, Threads) {
+TEST(TrustedCPP, Threads) {
 
     {
         unsigned long long g_count = 0;
@@ -354,7 +353,7 @@ TEST(MemSafe, Threads) {
     }
 
     {
-        memsafe::Shared<int, SyncSingleThread> var_single(0);
+        trust::Shared<int, SyncSingleThread> var_single(0);
         bool catched = false;
 
         std::thread other([&]() {
@@ -371,7 +370,7 @@ TEST(MemSafe, Threads) {
     }
 
     {
-        memsafe::Shared<int, SyncTimedMutex> var_mutex(0);
+        trust::Shared<int, SyncTimedMutex> var_mutex(0);
         bool catched = false;
 
         std::chrono::duration<double, std::milli> elapsed;
@@ -397,7 +396,7 @@ TEST(MemSafe, Threads) {
     }
 
     {
-        memsafe::Shared<int, SyncTimedShared> var_recursive(0);
+        trust::Shared<int, SyncTimedShared> var_recursive(0);
         bool not_catched = true;
 
         std::thread read([&]() {
@@ -432,7 +431,7 @@ TEST(MemSafe, Threads) {
 
 }
 
-TEST(MemSafe, Depend) {
+TEST(TrustedCPP, Depend) {
     {
         std::vector<int> vect(100000, 0);
         auto b = vect.begin();
@@ -491,10 +490,10 @@ TEST(MemSafe, Depend) {
     }
 }
 
-TEST(MemSafe, ApplyAttr) {
+TEST(TrustedCPP, ApplyAttr) {
 
-    memsafe::Value<int> var_value(1);
-    static memsafe::Value<int> var_static(1);
+    trust::Value<int> var_value(1);
+    static trust::Value<int> var_static(1);
 
     var_static = var_value;
     {
@@ -504,8 +503,8 @@ TEST(MemSafe, ApplyAttr) {
         }
     }
 
-    memsafe::Shared<int> var_shared1(0);
-    memsafe::Shared<int> var_shared2(1);
+    trust::Shared<int> var_shared1(0);
+    trust::Shared<int> var_shared2(1);
 
     ASSERT_TRUE(var_shared1);
     ASSERT_TRUE(var_shared2);
@@ -518,18 +517,18 @@ TEST(MemSafe, ApplyAttr) {
         }
     }
 
-    memsafe::Shared<int, SyncSingleThread> var_none(1);
+    trust::Shared<int, SyncSingleThread> var_none(1);
     ASSERT_TRUE(var_none);
 
-    memsafe::Shared<int, SyncTimedMutex> var_mutex(1);
+    trust::Shared<int, SyncTimedMutex> var_mutex(1);
     ASSERT_TRUE(var_mutex);
 
-    memsafe::Shared<int, SyncTimedShared> var_shared(1);
+    trust::Shared<int, SyncTimedShared> var_shared(1);
     ASSERT_TRUE(var_shared);
 
 }
 
-TEST(MemSafe, Separartor) {
+TEST(TrustedCPP, Separartor) {
     ASSERT_STREQ("", SeparatorRemove("").c_str());
     ASSERT_STREQ("0", SeparatorRemove("0").c_str());
     ASSERT_STREQ("00", SeparatorRemove("0'0").c_str());
@@ -546,27 +545,27 @@ TEST(MemSafe, Separartor) {
     EXPECT_STREQ("111_111_111_111", SeparatorInsert(111'111'111'111, '_').c_str());
 }
 
-TEST(MemSafe, MemSafeFile) {
+TEST(TrustedCPP, TrustFile) {
 
-    std::string filename = "unittest-circleref.memsafe";
+    std::string filename = "unittest-circleref.trust";
 
     fs::remove(filename);
     ASSERT_FALSE(fs::exists(filename));
 
-    MemSafeFile::ClassReadType classes;
+    TrustFile::ClassReadType classes;
 
     {
-        MemSafeFile file(filename, "file_empty.cpp");
+        TrustFile file(filename, "file_empty.cpp");
 
         file.WriteFile(classes);
 
         ASSERT_TRUE(fs::exists(filename));
-        MemSafeFile::ClassReadType readed;
+        TrustFile::ClassReadType readed;
         ASSERT_NO_THROW(file.ReadFile(readed));
         ASSERT_TRUE(readed.empty());
     }
     {
-        MemSafeFile file(filename, "file1.cpp");
+        TrustFile file(filename, "file1.cpp");
 
         classes["class0"] = {};
 
@@ -592,9 +591,9 @@ TEST(MemSafe, MemSafeFile) {
         ASSERT_TRUE(fs::exists(filename));
 
         {
-            MemSafeFile file(filename, "file_read.cpp");
+            TrustFile file(filename, "file_read.cpp");
 
-            MemSafeFile::ClassReadType readed;
+            TrustFile::ClassReadType readed;
 
             ASSERT_NO_THROW(file.ReadFile(readed));
 
@@ -611,7 +610,7 @@ TEST(MemSafe, MemSafeFile) {
         }
     }
     {
-        MemSafeFile file(filename, "file2.cpp");
+        TrustFile file(filename, "file2.cpp");
 
         ASSERT_TRUE(fs::exists(filename));
 
@@ -640,7 +639,7 @@ TEST(MemSafe, MemSafeFile) {
 
         ASSERT_TRUE(fs::exists(filename));
 
-        MemSafeFile::ClassReadType readed;
+        TrustFile::ClassReadType readed;
 
         ASSERT_NO_THROW(file.ReadFile(readed));
 
@@ -660,7 +659,7 @@ TEST(MemSafe, MemSafeFile) {
     fs::remove(filename);
 }
 
-TEST(MemSafe, WeakList) {
+TEST(TrustedCPP, WeakList) {
 
     LinkedWeakList<int> int_list;
 
@@ -689,7 +688,7 @@ TEST(MemSafe, WeakList) {
     ASSERT_FALSE(int_list.empty());
 }
 
-TEST(MemSafe, Plugin) {
+TEST(TrustedCPP, Plugin) {
 
     // Example of running a plugin to compile a file
 
@@ -707,9 +706,9 @@ TEST(MemSafe, Plugin) {
 
     std::string cmd = "clang-21";
     cmd += " -std=c++20 -ferror-limit=500 ";
-    cmd += " -Xclang -load -Xclang ../memsafe_clang.so -Xclang -add-plugin -Xclang memsafe ";
-    cmd += " -Xclang -plugin-arg-memsafe -Xclang log ";
-    cmd += " -Xclang -plugin-arg-memsafe -Xclang circleref-disable";
+    cmd += " -Xclang -load -Xclang ../trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust ";
+    cmd += " -Xclang -plugin-arg-trust -Xclang log ";
+    cmd += " -Xclang -plugin-arg-trust -Xclang circleref-disable";
     cmd += " -c _example.cpp > _example.cpp.log";
 
     const char * file_log = "_example.cpp.log";
@@ -802,9 +801,9 @@ TEST(MemSafe, Plugin) {
         "#err #900012004",
     });
 
-    size_t pos = log_output.find(MEMSAFE_KEYWORD_START_LOG);
+    size_t pos = log_output.find(TRUST_KEYWORD_START_LOG);
     ASSERT_TRUE(pos != std::string::npos);
-    std::string log_str = log_output.substr(pos + strlen(MEMSAFE_KEYWORD_START_LOG), log_output.find("\n\n", pos + strlen(MEMSAFE_KEYWORD_START_LOG)) - pos - strlen(MEMSAFE_KEYWORD_START_LOG));
+    std::string log_str = log_output.substr(pos + strlen(TRUST_KEYWORD_START_LOG), log_output.find("\n\n", pos + strlen(TRUST_KEYWORD_START_LOG)) - pos - strlen(TRUST_KEYWORD_START_LOG));
 
     //    std::cout << "\n" << log_str << "\n\n";
 
@@ -856,12 +855,12 @@ TEST(MemSafe, Plugin) {
 
 }
 
-TEST(MemSafe, Cycles) {
+TEST(TrustedCPP, Cycles) {
 
-    const std::string cmd_base = "clang-21 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ../memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang log ";
+    const std::string cmd_base = "clang-21 -std=c++20 -ferror-limit=500 -Xclang -load -Xclang ../trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang log ";
 
 
-    fs::remove(MemSafeFile::SHARED_SCAN_FILE_DEFAULT);
+    fs::remove(TrustFile::SHARED_SCAN_FILE_DEFAULT);
 
     const char * file_log = "_cycles.cpp.log";
     fs::remove(file_log);
@@ -883,13 +882,13 @@ TEST(MemSafe, Cycles) {
 
     ASSERT_TRUE(log_output.find("not found in current translation unit.") != std::string::npos);
 
-    ASSERT_FALSE(fs::exists(MemSafeFile::SHARED_SCAN_FILE_DEFAULT));
+    ASSERT_FALSE(fs::exists(TrustFile::SHARED_SCAN_FILE_DEFAULT));
     fs::remove("_example.cpp.log");
 
-    std::system(std::format("{} -Xclang -plugin-arg-memsafe -Xclang circleref-write -fsyntax-only _example.cpp > _example.cpp.log", cmd_base).c_str());
+    std::system(std::format("{} -Xclang -plugin-arg-trust -Xclang circleref-write -fsyntax-only _example.cpp > _example.cpp.log", cmd_base).c_str());
 
     ASSERT_TRUE(fs::exists("_example.cpp.log"));
-    ASSERT_TRUE(fs::exists(MemSafeFile::SHARED_SCAN_FILE_DEFAULT));
+    ASSERT_TRUE(fs::exists(TrustFile::SHARED_SCAN_FILE_DEFAULT));
 
 
     std::ifstream example_file("_example.cpp.log");
@@ -904,7 +903,7 @@ TEST(MemSafe, Cycles) {
     ASSERT_TRUE(example_log.size() > 100);
     ASSERT_TRUE(example_log.find("The circular reference analyzer requires two passes.") == std::string::npos);
 
-    std::system(std::format("{} -Xclang -plugin-arg-memsafe -Xclang circleref-read -c _cycles.cpp > _cycles.cpp.log", cmd_base).c_str());
+    std::system(std::format("{} -Xclang -plugin-arg-trust -Xclang circleref-read -c _cycles.cpp > _cycles.cpp.log", cmd_base).c_str());
 
 
     ASSERT_TRUE(fs::exists(file_log));
@@ -990,9 +989,9 @@ TEST(MemSafe, Cycles) {
         "#log #10007",
     });
 
-    size_t pos = log_output2.find(MEMSAFE_KEYWORD_START_LOG);
+    size_t pos = log_output2.find(TRUST_KEYWORD_START_LOG);
     ASSERT_TRUE(pos != std::string::npos);
-    std::string log_str = log_output2.substr(pos + strlen(MEMSAFE_KEYWORD_START_LOG), log_output2.find("\n\n", pos + strlen(MEMSAFE_KEYWORD_START_LOG)) - pos - strlen(MEMSAFE_KEYWORD_START_LOG));
+    std::string log_str = log_output2.substr(pos + strlen(TRUST_KEYWORD_START_LOG), log_output2.find("\n\n", pos + strlen(TRUST_KEYWORD_START_LOG)) - pos - strlen(TRUST_KEYWORD_START_LOG));
 
     //    std::cout << "\n" << log_str << "\n\n";
 
@@ -1042,29 +1041,29 @@ TEST(MemSafe, Cycles) {
         ADD_FAILURE() << "Diag not found: " << elem;
     }
 
-    std::string temp_memsafe = "unittest-all.memsafe";
+    std::string temp_trust = "unittest-all.trust";
 
-    fs::remove(temp_memsafe);
-    ASSERT_TRUE(!fs::exists(temp_memsafe));
+    fs::remove(temp_trust);
+    ASSERT_TRUE(!fs::exists(temp_trust));
 
-    std::system(std::format("{} -Xclang -plugin-arg-memsafe -Xclang circleref-write={} -fsyntax-only _example.cpp > _example.second.log", cmd_base, temp_memsafe).c_str());
-    std::system(std::format("{} -Xclang -plugin-arg-memsafe -Xclang circleref-write={} -fsyntax-only _cycles.cpp > _cycles.second.log", cmd_base, temp_memsafe).c_str());
+    std::system(std::format("{} -Xclang -plugin-arg-trust -Xclang circleref-write={} -fsyntax-only _example.cpp > _example.second.log", cmd_base, temp_trust).c_str());
+    std::system(std::format("{} -Xclang -plugin-arg-trust -Xclang circleref-write={} -fsyntax-only _cycles.cpp > _cycles.second.log", cmd_base, temp_trust).c_str());
 
-    ASSERT_TRUE(fs::exists(temp_memsafe));
+    ASSERT_TRUE(fs::exists(temp_trust));
 
-    MemSafeFile file(temp_memsafe, "unit_test.not_file");
+    TrustFile file(temp_trust, "unit_test.not_file");
 
-    MemSafeFile::ClassReadType readed;
+    TrustFile::ClassReadType readed;
 
     ASSERT_NO_THROW(file.ReadFile(readed));
 
-    std::string shared = MemSafeFile::to_string(readed);
+    std::string shared = TrustFile::to_string(readed);
 
     ASSERT_STREQ("cycles::ArraySharedInt {std::vector} fields:{}\ncycles::CircleSelf {} fields:{cycles::CircleSelf}\ncycles::CircleSelfUnsafe {} fields:{cycles::CircleSelf}\ncycles::CircleShared {} fields:{cycles::CircleShared}\ncycles::CircleSharedUnsafe {} fields:{cycles::CircleShared}\ncycles::ExtExt {ns::Ext} fields:{}\ncycles::ExtExtExt {cycles::ExtExt} fields:{}\ncycles::SharedArrayInt {std::vector} fields:{}\ncycles::SharedCross {} fields:{cycles::SharedCross2}\ncycles::SharedCross2 {} fields:{cycles::SharedCross}\ncycles::SharedCross2Unsafe {} fields:{cycles::SharedCross}\ncycles::SharedCrossUnsafe {} fields:{cycles::SharedCross2}\ncycles::SharedSingle {} fields:{}\ncycles::SharedSingleInt {} fields:{}\ncycles::SharedSingleIntField {} fields:{cycles::SharedSingleInt}\nns::A {} fields:{ns::Ext}\nns::Ext {} fields:{ns::A}\n", shared.c_str()) << shared;
 
     fs::remove("_example.second.log");
     fs::remove("_cycles.second.log");
-    fs::remove(temp_memsafe);
+    fs::remove(temp_trust);
 }
 
 #endif

@@ -28,7 +28,7 @@
 
 ## Miscellaneous
 - Switched to clang-20 (added support for custom attributes in expressions)
-- Add expanded diagnostics and plugin development methods (MEMSAFE_PRINT_DUMP and MEMSAFE_PRINT_AST macros)
+- Add expanded diagnostics and plugin development methods (TRUSTED_PRINT_DUMP and TRUSTED_PRINT_AST macros)
 - Removed automated testing with FixIt and reorganized plugin log output to indicate where the message was created for use in tests.
 
 ------

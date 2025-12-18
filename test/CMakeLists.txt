@@ -1,29 +1,29 @@
 # Создадим цель для тестов
-add_executable(memsafe_unittest
+add_executable(trusted-cpp_unittest
     _cycles.cpp
     _example.cpp
-    memsafe_test.cpp
+    trusted-cpp_test.cpp
 )
 
 # Настроим тесты
-set_target_properties(memsafe_unittest PROPERTIES
+set_target_properties(trusted-cpp_unittest PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Используем общую функцию для установки свойств
-set_common_target_properties(memsafe_unittest)
+set_common_target_properties(trusted-cpp_unittest)
 
-target_compile_definitions(memsafe_unittest PRIVATE
+target_compile_definitions(trusted-cpp_unittest PRIVATE
     BUILD_UNITTEST
 )
 
-target_include_directories(memsafe_unittest PRIVATE
+target_include_directories(trusted-cpp_unittest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_SOURCE_DIR}/../plugin
     ${YAML_CPP_INCLUDE_DIRS}
 )
 
-target_link_libraries(memsafe_unittest 
+target_link_libraries(trusted-cpp_unittest 
     GTest::GTest 
     GTest::Main 
     yaml-cpp
@@ -31,29 +31,29 @@ target_link_libraries(memsafe_unittest
 )
 
 # Убедимся, что плагин собран перед запуском тестов
-add_dependencies(memsafe_unittest memsafe_clang)
+add_dependencies(trusted-cpp_unittest trusted-cpp_clang)
 
 # Добавим пользовательские команды для анализа файлов с использованием плагина
 # Для _cycles.cpp
-add_memsafe_analysis_command(
+add_trust_analysis_command(
     ${CMAKE_CURRENT_SOURCE_DIR}/_cycles.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/_cycles
-    memsafe_unittest
-    -Xclang -plugin-arg-memsafe -Xclang circleref-read=${CMAKE_CURRENT_SOURCE_DIR}/circleref.memsafe
+    trusted-cpp_unittest
+    -Xclang -plugin-arg-trust -Xclang circleref-read=${CMAKE_CURRENT_SOURCE_DIR}/circleref.trust
 )
 
 # Для _example.cpp
-add_memsafe_analysis_command(
+add_trust_analysis_command(
     ${CMAKE_CURRENT_SOURCE_DIR}/_example.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/_example
-    memsafe_unittest
-    -Xclang -plugin-arg-memsafe -Xclang circleref-disable
+    trusted-cpp_unittest
+    -Xclang -plugin-arg-trust -Xclang circleref-disable
 )
 
 # Создадим цель для запуска тестов
 add_custom_target(run_tests
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/memsafe_unittest
-    DEPENDS memsafe_unittest
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/trusted-cpp_unittest
+    DEPENDS trusted-cpp_unittest
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Running memsafe unit tests"
+    COMMENT "Running trust unit tests"
 )

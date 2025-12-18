@@ -1,6 +1,6 @@
 #pragma once
-#ifndef INCLUDED_MEMSAFE_PLUGIN_H_
-#define INCLUDED_MEMSAFE_PLUGIN_H_
+#ifndef INCLUDED_TRUST_PLUGIN_H_
+#define INCLUDED_TRUST_PLUGIN_H_
 
 #include <string>
 #include <vector>
@@ -14,9 +14,9 @@
 #include <fstream>
 #include <chrono>
 
-#include "memsafe.h"
+#include "trusted-cpp.h"
 
-namespace memsafe {
+namespace trust {
 
     namespace fs = std::filesystem;
 
@@ -191,7 +191,7 @@ namespace memsafe {
      * only their types are saved if they are shared (or pointers/references)
      */
 
-    class MemSafeFile {
+    class TrustFile {
     public:
 
         typedef std::map<std::string, std::string> ListType;
@@ -203,7 +203,7 @@ namespace memsafe {
         };
         typedef std::map<std::string, ClassRead> ClassReadType;
 
-        static constexpr const char * SHARED_SCAN_FILE_DEFAULT = "circleref.memsafe";
+        static constexpr const char * SHARED_SCAN_FILE_DEFAULT = "circleref.trust";
 
         static constexpr const char * TAG_NAME_MODIFIED = "modified";
 
@@ -214,7 +214,7 @@ namespace memsafe {
         std::string m_file_name;
         std::string m_input_file;
 
-        MemSafeFile(std::string_view file, std::string_view input) : m_file_name(file), m_input_file(input) {
+        TrustFile(std::string_view file, std::string_view input) : m_file_name(file), m_input_file(input) {
         }
 
         static std::string & to_string(ListType &list, std::string &result) {
@@ -371,7 +371,7 @@ namespace memsafe {
 
             emit << YAML::Comment("") << YAML::Newline;
             emit << YAML::Comment("This file is created automatically for circular reference analysis") << YAML::Newline;
-            emit << YAML::Comment("by the memsafe plugin https://github.com/rsashka/memsafe ") << YAML::Newline;
+            emit << YAML::Comment("by the trust plugin https://github.com/rsashka/trust ") << YAML::Newline;
             emit << YAML::Comment("when the C++ compiler uses multiple translation units.") << YAML::Newline;
 
             emit << YAML::Comment("") << YAML::Newline;
@@ -400,4 +400,4 @@ namespace memsafe {
         }
     };
 }
-#endif // INCLUDED_MEMSAFE_PLUGIN_H_
+#endif // INCLUDED_TRUST_PLUGIN_H_

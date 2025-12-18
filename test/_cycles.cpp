@@ -1,9 +1,9 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include "../memsafe.h"
+#include "../trusted-cpp.h"
 
-using namespace memsafe;
+using namespace trust;
 
 namespace ns {
     struct A;
@@ -12,7 +12,7 @@ namespace ns {
     //    struct A {
     //        Shared<Ext> ext;
     //    };
-    MEMSAFE_BASELINE(100);
+    TRUSTED_BASELINE(100);
 
     class Ext {
         Shared<A> a;
@@ -24,7 +24,7 @@ namespace ns {
 namespace cycles {
 
     // simple circular self-references
-    MEMSAFE_BASELINE(1_000);
+    TRUSTED_BASELINE(1_000);
 
     struct CircleSelf {
         CircleSelf * self;
@@ -35,17 +35,17 @@ namespace cycles {
     };
 
     struct CircleSelfUnsafe {
-        MEMSAFE_UNSAFE CircleSelf * self;
+        UNTRUSTED CircleSelf * self;
     };
 
     struct CircleSharedUnsafe {
-        MEMSAFE_UNSAFE Shared<CircleShared> shared;
+        UNTRUSTED Shared<CircleShared> shared;
     };
 
 
 
     // cyclic cross-references
-    MEMSAFE_BASELINE(2_000);
+    TRUSTED_BASELINE(2_000);
 
     class SharedCross2;
 
@@ -58,16 +58,16 @@ namespace cycles {
     };
 
     class SharedCrossUnsafe {
-        MEMSAFE_UNSAFE SharedCross2 *cross2;
+        UNTRUSTED SharedCross2 *cross2;
     };
 
     class SharedCross2Unsafe {
-        MEMSAFE_UNSAFE SharedCross *cross;
+        UNTRUSTED SharedCross *cross;
     };
 
 
     // cyclic cross-references between classes that are defined in other translation units
-    MEMSAFE_BASELINE(3_000);
+    TRUSTED_BASELINE(3_000);
 
     struct ExtExt : public ns::Ext {
     };
@@ -78,7 +78,7 @@ namespace cycles {
 
 
     // Reference types in STD templates
-    MEMSAFE_BASELINE(4_000);
+    TRUSTED_BASELINE(4_000);
 
     struct ArraySharedInt : public std::vector<Shared<int> > {
     };
@@ -89,7 +89,7 @@ namespace cycles {
 
 
     // Reference types when extending templates
-    MEMSAFE_BASELINE(5_000);
+    TRUSTED_BASELINE(5_000);
 
     template <typename T>
     class SharedSingle : public Shared<T, SyncSingleThread> {
@@ -108,7 +108,7 @@ namespace cycles {
 
 
     // Non-reference types with weak references
-    MEMSAFE_BASELINE(10_000);
+    TRUSTED_BASELINE(10_000);
 
     class NotShared1 {
         int interger;

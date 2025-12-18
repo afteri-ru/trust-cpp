@@ -28,20 +28,20 @@ endfunction()
 
 
 # Определим функцию для анализа файлов с использованием плагина
-function(add_memsafe_analysis_command SOURCE_FILE OUTPUT_FILE DEPENDS_TARGET ARG1 ARG2)
+function(add_trust_analysis_command SOURCE_FILE OUTPUT_FILE DEPENDS_TARGET ARG1 ARG2)
     add_custom_command(TARGET ${DEPENDS_TARGET} PRE_BUILD
         COMMAND ${CMAKE_CXX_COMPILER} -std=c++20 -ferror-limit=500 -g -DBUILD_UNITTEST -I${CMAKE_CURRENT_SOURCE_DIR}
-                -Xclang -load -Xclang "${CMAKE_SOURCE_DIR}/memsafe_clang.so"
-                -Xclang -add-plugin -Xclang memsafe
-                -Xclang -plugin-arg-memsafe -Xclang log
-                -Xclang -plugin-arg-memsafe -Xclang level=warning
+                -Xclang -load -Xclang "${CMAKE_SOURCE_DIR}/trusted-cpp_clang.so"
+                -Xclang -add-plugin -Xclang trust
+                -Xclang -plugin-arg-trust -Xclang log
+                -Xclang -plugin-arg-trust -Xclang level=warning
                 ${ARG1} ${ARG2}
                 -MMD -MP -MF ${OUTPUT_FILE}.d
                 -o ${OUTPUT_FILE}.o
                 -c ${SOURCE_FILE}
-        DEPENDS ${DEPENDS_TARGET} ${DEPENDS_TARGET}_memsafe
+        DEPENDS ${DEPENDS_TARGET} ${DEPENDS_TARGET}_trust
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Analyzing ${SOURCE_FILE} with memsafe plugin"
+        COMMENT "Analyzing ${SOURCE_FILE} with trust plugin"
     )
 endfunction()
 

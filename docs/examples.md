@@ -13,7 +13,7 @@ Here are some examples demonstrating how to use Trusted-CPP in your projects.
 To compile a file with the Trusted-CPP plugin, use the following command line:
 
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 ```
 
 ## Pointer Invalidation Detection
@@ -78,7 +78,7 @@ _cycles.cpp:57:22: error: The class 'cycles::SharedCross2' has a circular refere
 Using the header-only library in your code:
 
 ```cpp
-#include "memsafe.h"
+#include "trust.h"
 
 // Define a shared variable with thread safety
 threadsafe_shared_var<std::vector<int>> myVector;
@@ -101,5 +101,5 @@ The plugin supports several command-line arguments:
 
 Example with disabled circular reference analysis:
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 ```

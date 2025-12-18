@@ -1,19 +1,19 @@
 #include <vector>
 #include <algorithm>
-#include "../memsafe.h"
+#include "../trusted-cpp.h"
 
-using namespace memsafe;
+using namespace trust;
 
 namespace ns {
 
-    MEMSAFE_BASELINE(100);
+    TRUSTED_BASELINE(100);
 
     void * invalidate_test(int arg) {
 
         std::vector<int> vect{1, 2, 3, 4};
         {
 
-            MEMSAFE_BASELINE(200);
+            TRUSTED_BASELINE(200);
             auto beg = vect.begin();
             std::vector<int>::const_iterator beg_const = vect.cbegin();
 
@@ -25,7 +25,7 @@ namespace ns {
             auto view_iter = view.begin(); // Error
 
             {
-                MEMSAFE_BASELINE(300);
+                TRUSTED_BASELINE(300);
                 vect = {};
                 vect.shrink_to_fit();
                 std::sort(beg, vect.end()); // Error
@@ -35,49 +35,49 @@ namespace ns {
 
         {
 
-            MEMSAFE_BASELINE(400);
+            TRUSTED_BASELINE(400);
             auto b = LazyCaller<decltype(vect), decltype(std::declval<decltype(vect)>().begin())>(vect, &decltype(vect)::begin);
             auto e = LAZYCALL(vect, end);
             {
-                MEMSAFE_BASELINE(500);
+                TRUSTED_BASELINE(500);
                 vect = {};
                 vect.clear();
                 std::sort(*b, *e);
             }
         }
 
-        MEMSAFE_BASELINE(900);
-        MEMSAFE_UNSAFE{
+        TRUSTED_BASELINE(900);
+        UNTRUSTED{
             return nullptr;
-            MEMSAFE_UNSAFE return nullptr;}
+            UNTRUSTED return nullptr;}
     }
 
-    namespace MEMSAFE_UNSAFE {
+    namespace UNTRUSTED {
 
-        MEMSAFE_BASELINE(1000);
+        TRUSTED_BASELINE(1000);
         Shared<int> var_unsafe1(1);
-        memsafe::Shared<int> var_unsafe2(2);
-        memsafe::Shared<int> var_unsafe3(3);
+        trust::Shared<int> var_unsafe2(2);
+        trust::Shared<int> var_unsafe3(3);
     }
 
 
 
-    MEMSAFE_BASELINE(2000);
-    memsafe::Value<int> var_value(1);
-    memsafe::Value<int> var_value2(2);
-    memsafe::Shared<int> var_share(1);
-    memsafe::Shared<int, memsafe::SyncTimedMutex> var_guard(1);
+    TRUSTED_BASELINE(2000);
+    trust::Value<int> var_value(1);
+    trust::Value<int> var_value2(2);
+    trust::Shared<int> var_share(1);
+    trust::Shared<int, trust::SyncTimedMutex> var_guard(1);
 
-    MEMSAFE_BASELINE(3000);
-    static memsafe::Value<int> var_static(1);
+    TRUSTED_BASELINE(3000);
+    static trust::Value<int> var_static(1);
     static auto static_fail1(var_static.lock()); // Error
     static auto static_fail2 = var_static.lock(); // Error
 
-    MEMSAFE_BASELINE(4000);
+    TRUSTED_BASELINE(4000);
 
-    memsafe::Shared<int> memory_test(memsafe::Shared<int> arg, memsafe::Value<int> arg_val) {
+    trust::Shared<int> memory_test(trust::Shared<int> arg, trust::Value<int> arg_val) {
 
-        MEMSAFE_BASELINE(4100);
+        TRUSTED_BASELINE(4100);
         var_static = var_value;
         {
             var_static = var_value;
@@ -86,24 +86,24 @@ namespace ns {
             }
         }
 
-        MEMSAFE_BASELINE(4200);
-        memsafe::Shared<int> var_shared1(1);
-        memsafe::Shared<int> var_shared2(1);
+        TRUSTED_BASELINE(4200);
+        trust::Shared<int> var_shared1(1);
+        trust::Shared<int> var_shared2(1);
 
-        MEMSAFE_BASELINE(4300);
+        TRUSTED_BASELINE(4300);
         var_shared1 = var_shared1; // Error
-        MEMSAFE_UNSAFE var_shared1 = var_shared2; // Unsafe
+        UNTRUSTED var_shared1 = var_shared2; // Unsafe
 
         {
-            MEMSAFE_BASELINE(4400);
-            memsafe::Shared<int> var_shared3(3);
+            TRUSTED_BASELINE(4400);
+            trust::Shared<int> var_shared3(3);
             var_shared1 = var_shared1; // Error
             var_shared2 = var_shared1; // Error
             var_shared3 = var_shared1;
 
             {
-                MEMSAFE_BASELINE(4500);
-                memsafe::Shared<int> var_shared4 = var_shared1;
+                TRUSTED_BASELINE(4500);
+                trust::Shared<int> var_shared4 = var_shared1;
 
                 var_shared1 = var_shared1; // Error
                 var_shared2 = var_shared1; // Error
@@ -115,32 +115,32 @@ namespace ns {
                 var_shared4 = var_shared4; // Error
 
                 if (var_shared4) {
-                    MEMSAFE_UNSAFE return var_shared4;
+                    UNTRUSTED return var_shared4;
                 }
                 return var_shared4; // Error
             }
 
-            MEMSAFE_BASELINE(4600);
+            TRUSTED_BASELINE(4600);
             std::swap(var_shared1, var_shared2);
             std::swap(var_shared1, var_shared3);
-            MEMSAFE_UNSAFE std::swap(var_shared1, var_shared3);
+            UNTRUSTED std::swap(var_shared1, var_shared3);
 
-            MEMSAFE_BASELINE(4700);
+            TRUSTED_BASELINE(4700);
             return arg; // Error
         }
 
-        MEMSAFE_BASELINE(4800);
+        TRUSTED_BASELINE(4800);
         int temp = 3;
         temp = 4;
         var_value = 5;
         *var_value += 6;
 
 
-        MEMSAFE_BASELINE(4900);
+        TRUSTED_BASELINE(4900);
         return 777;
     }
 
-    MEMSAFE_BASELINE(7000);
+    TRUSTED_BASELINE(7000);
 
     void shared_example() {
         std::shared_ptr<int> old_shared; // Error
@@ -156,22 +156,22 @@ namespace ns {
         }
     }
 
-    MEMSAFE_BASELINE(8000);
+    TRUSTED_BASELINE(8000);
 
-    memsafe::Shared<int> memory_test_8(memsafe::Shared<int> arg) {
-        MEMSAFE_BASELINE(8900);
+    trust::Shared<int> memory_test_8(trust::Shared<int> arg) {
+        TRUSTED_BASELINE(8900);
         return arg; // Error
     }
 
-    MEMSAFE_BASELINE(9000);
+    TRUSTED_BASELINE(9000);
 
-    memsafe::Shared<int> memory_test_9() {
-        MEMSAFE_BASELINE(9900);
+    trust::Shared<int> memory_test_9() {
+        TRUSTED_BASELINE(9900);
         return Shared<int>(999);
     }
 
 
-    MEMSAFE_BASELINE(10_000);
+    TRUSTED_BASELINE(10_000);
 
     struct Ext;
 
@@ -179,16 +179,16 @@ namespace ns {
         Shared<Ext> ext;
     };
 
-    void bugfix_11() { // https://github.com/rsashka/memsafe/issues/11
-        MEMSAFE_BASELINE(900_011_000);
+    void bugfix_11() { // https://github.com/rsashka/trust/issues/11
+        TRUSTED_BASELINE(900_011_000);
         std::vector vect(100000, 0);
         auto x = (vect.begin());
         vect = {};
         std::sort(x, vect.end()); // Error
     }
 
-    void bugfix_12() { // https://github.com/rsashka/memsafe/issues/12
-        MEMSAFE_BASELINE(900_012_000);
+    void bugfix_12() { // https://github.com/rsashka/trust/issues/12
+        TRUSTED_BASELINE(900_012_000);
         std::vector vect(100000, 0);
         auto& y = vect[0];
         vect = {};

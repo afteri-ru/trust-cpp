@@ -13,7 +13,7 @@ lang: ru
 Для компиляции файла с плагином Trusted-CPP используйте следующую командную строку:
 
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 ```
 
 ## Обнаружение инвалидации указателей
@@ -78,7 +78,7 @@ _cycles.cpp:57:22: error: The class 'cycles::SharedCross2' has a circular refere
 Использование библиотеки в вашем коде в виде заголовочных файлов:
 
 ```cpp
-#include "memsafe.h"
+#include "trust.h"
 
 // Определение общей переменной с потоковой безопасностью
 threadsafe_shared_var<std::vector<int>> myVector;
@@ -101,5 +101,5 @@ void worker_thread() {
 
 Пример с отключенным анализом циклических ссылок:
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable _example.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable _example.cpp
 ```

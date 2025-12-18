@@ -1,6 +1,6 @@
 #pragma once
-#ifndef INCLUDED_MEMSAFE_H_
-#define INCLUDED_MEMSAFE_H_
+#ifndef INCLUDED_TRUSTED_H_
+#define INCLUDED_TRUSTED_H_
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -33,47 +33,47 @@
  */
 
 
-#define MEMSAFE_KEYWORD_ATTRIBUTE memsafe
-#define MEMSAFE_KEYWORD_PROFILE "profile"
-#define MEMSAFE_KEYWORD_STATUS "status"
-#define MEMSAFE_KEYWORD_UNSAFE "unsafe"
-#define MEMSAFE_KEYWORD_PRINT_AST "print-ast"
-#define MEMSAFE_KEYWORD_PRINT_DUMP "print-dump"
-#define MEMSAFE_KEYWORD_BASELINE "baseline"
+#define TRUST_KEYWORD_ATTRIBUTE trust
+#define TRUST_KEYWORD_PROFILE "profile"
+#define TRUST_KEYWORD_STATUS "status"
+#define TRUST_KEYWORD_UNSAFE "unsafe"
+#define TRUST_KEYWORD_PRINT_AST "print-ast"
+#define TRUST_KEYWORD_PRINT_DUMP "print-dump"
+#define TRUST_KEYWORD_BASELINE "baseline"
 
-#define MEMSAFE_KEYWORD_START_LOG "#memsafe-log\n"
-#define MEMSAFE_KEYWORD_START_DUMP "#memsafe-dump\n"
+#define TRUST_KEYWORD_START_LOG "#trust-log\n"
+#define TRUST_KEYWORD_START_DUMP "#trust-dump\n"
 
-#define MEMSAFE_KEYWORD_ENABLE "enable"
-#define MEMSAFE_KEYWORD_DISABLE "disable"
-#define MEMSAFE_KEYWORD_PUSH "push"
-#define MEMSAFE_KEYWORD_POP "pop"
+#define TRUST_KEYWORD_ENABLE "enable"
+#define TRUST_KEYWORD_DISABLE "disable"
+#define TRUST_KEYWORD_PUSH "push"
+#define TRUST_KEYWORD_POP "pop"
 
 // maximum diagnostic level of plugin message when error is detected in source code
-#define MEMSAFE_KEYWORD_LEVEL "level"
-#define MEMSAFE_KEYWORD_ERROR "error"
-#define MEMSAFE_KEYWORD_WARNING "warning"
-#define MEMSAFE_KEYWORD_NOTE "note"
-#define MEMSAFE_KEYWORD_REMARK "remark"
-#define MEMSAFE_KEYWORD_IGNORED "ignored"
+#define TRUST_KEYWORD_LEVEL "level"
+#define TRUST_KEYWORD_ERROR "error"
+#define TRUST_KEYWORD_WARNING "warning"
+#define TRUST_KEYWORD_NOTE "note"
+#define TRUST_KEYWORD_REMARK "remark"
+#define TRUST_KEYWORD_IGNORED "ignored"
 
-#define MEMSAFE_KEYWORD_AUTO_TYPE "auto-type"
-#define MEMSAFE_KEYWORD_SHARED_TYPE "shared-type"
-#define MEMSAFE_KEYWORD_INVALIDATE_FUNC  "invalidate-func"
+#define TRUST_KEYWORD_AUTO_TYPE "auto-type"
+#define TRUST_KEYWORD_SHARED_TYPE "shared-type"
+#define TRUST_KEYWORD_INVALIDATE_FUNC  "invalidate-func"
 
 
 #if defined __has_attribute
-#if __has_attribute( MEMSAFE_KEYWORD_ATTRIBUTE )
-#define MEMSAFE_ATTR(...) [[ MEMSAFE_KEYWORD_ATTRIBUTE (__VA_ARGS__)]]
-#define MEMSAFE_BASELINE(number) MEMSAFE_ATTR( MEMSAFE_KEYWORD_BASELINE, #number) void memsafe_stub();
+#if __has_attribute( TRUST_KEYWORD_ATTRIBUTE )
+#define TRUSTED_ATTR(...) [[ TRUST_KEYWORD_ATTRIBUTE (__VA_ARGS__)]]
+#define TRUSTED_BASELINE(number) TRUSTED_ATTR( TRUST_KEYWORD_BASELINE, #number) void trust_stub();
 #endif
 #endif
 
 // Disable memory safety plugin attributes 
-#ifndef MEMSAFE_ATTR
-#define MEMSAFE_ATTR(...)
-#define MEMSAFE_BASELINE(number)
-#define MEMSAFE_DISABLE
+#ifndef TRUSTED_ATTR
+#define TRUSTED_ATTR(...)
+#define TRUSTED_BASELINE(number)
+#define TRUSTED_DISABLE
 #endif
 
 #ifndef TO_STR
@@ -81,54 +81,55 @@
 #define TO_STR(ARG) TO_STR2(ARG)
 #endif
 
-#define MEMSAFE_PROFILE(file) MEMSAFE_ATTR(MEMSAFE_KEYWORD_PROFILE, file)
-#define MEMSAFE_STATUS(status) MEMSAFE_ATTR(MEMSAFE_KEYWORD_STATUS, status)
-#define MEMSAFE_DIAG_LEVEL(level) MEMSAFE_ATTR(MEMSAFE_KEYWORD_LEVEL, level)
-#define MEMSAFE_UNSAFE MEMSAFE_ATTR(MEMSAFE_KEYWORD_UNSAFE, TO_STR(__LINE__))
+#define TRUSTED_PROFILE(file) TRUSTED_ATTR(TRUST_KEYWORD_PROFILE, file)
+#define TRUSTED_STATUS(status) TRUSTED_ATTR(TRUST_KEYWORD_STATUS, status)
+#define TRUSTED_DIAG_LEVEL(level) TRUSTED_ATTR(TRUST_KEYWORD_LEVEL, level)
+#define TRUSTED TRUSTED_ATTR(TRUST_KEYWORD_UNSAFE, TO_STR(__LINE__))
+#define UNTRUSTED TRUSTED_ATTR(TRUST_KEYWORD_UNSAFE, TO_STR(__LINE__))
 
-#define MEMSAFE_ERROR_TYPE(name) MEMSAFE_ATTR(MEMSAFE_KEYWORD_ERROR "-type", name)
-#define MEMSAFE_WARNING_TYPE(name) MEMSAFE_ATTR(MEMSAFE_KEYWORD_WARNING "-type", name)
-#define MEMSAFE_AUTO_TYPE(name) MEMSAFE_ATTR(MEMSAFE_KEYWORD_AUTO_TYPE, name)
-#define MEMSAFE_SHARED_TYPE(name) MEMSAFE_ATTR(MEMSAFE_KEYWORD_SHARED_TYPE, name)
-#define MEMSAFE_INVALIDATE_FUNC(name) MEMSAFE_ATTR(MEMSAFE_KEYWORD_INVALIDATE_FUNC, name)
+#define TRUSTED_ERROR_TYPE(name) TRUSTED_ATTR(TRUST_KEYWORD_ERROR "-type", name)
+#define TRUSTED_WARNING_TYPE(name) TRUSTED_ATTR(TRUST_KEYWORD_WARNING "-type", name)
+#define TRUSTED_AUTO_TYPE(name) TRUSTED_ATTR(TRUST_KEYWORD_AUTO_TYPE, name)
+#define TRUSTED_SHARED_TYPE(name) TRUSTED_ATTR(TRUST_KEYWORD_SHARED_TYPE, name)
+#define TRUSTED_INVALIDATE_FUNC(name) TRUSTED_ATTR(TRUST_KEYWORD_INVALIDATE_FUNC, name)
 
-#define MEMSAFE_PRINT_AST(filter) MEMSAFE_ATTR(MEMSAFE_KEYWORD_PRINT_AST, filter) void memsafe_stub();
-#define MEMSAFE_PRINT_DUMP(filter) MEMSAFE_ATTR(MEMSAFE_KEYWORD_PRINT_DUMP, filter) void memsafe_stub();
+#define TRUSTED_PRINT_AST(filter) TRUSTED_ATTR(TRUST_KEYWORD_PRINT_AST, filter) void trust_stub();
+#define TRUSTED_PRINT_DUMP(filter) TRUSTED_ATTR(TRUST_KEYWORD_PRINT_DUMP, filter) void trust_stub();
 
 /**
- * @def MEMSAFE_ATTR(...)
+ * @def TRUSTED_ATTR(...)
  * 
- * Inserts [[memsafe( ... )]] attributes into the С++ code 
+ * Inserts [[trust( ... )]] attributes into the С++ code 
  * if they are supported by the compiler 
  * and the library semantic analysis plugin is connected
  * 
  */
 
 /**
- * @def MEMSAFE_BASELINE(number)
+ * @def TRUSTED_BASELINE(number)
  * 
- * Set the current base line number of [[memsafe( "baseline", "num" )]] 
+ * Set the current base line number of [[trust( "baseline", "num" )]] 
  * markers used when debugging the plugin.
  * 
  * If you don't use this macro, the line numbers at the debug marker positions 
  * will match the line numbers in the source file.
  * 
  * Set base line number  is implemented as a set of custom attributes in the 
- * stub function `void memsafe_stub()` forward declaration, as this can be done anywhere in C++ code.
+ * stub function `void trust_stub()` forward declaration, as this can be done anywhere in C++ code.
  */
 
 /**
- * @def MEMSAFE_PRINT_AST(...)
+ * @def TRUSTED_PRINT_AST(...)
  * 
  * Enables or disables the output of expressions from the source file as AST nodes.
  * Expression filter is planned (not implemented yet).
  * 
  * Control over AST dump output is implemented as a set of custom attributes 
- * in the stub function `void memsafe_stub()` forward declaration, as this can be done anywhere in C++ code.
+ * in the stub function `void trust_stub()` forward declaration, as this can be done anywhere in C++ code.
  */
 
 /**
- * @def MEMSAFE_PRINT_DUMP(...)
+ * @def TRUSTED_PRINT_DUMP(...)
  * 
  * Outputs the current state of the plugin and its main internal variables, 
  * as well as a stack of code blocks (hierarchies of variable lifetimes) 
@@ -137,64 +138,64 @@
  */
 
 /**
- * @def MEMSAFE_DISABLE
+ * @def TRUSTED_DISABLE
  * 
  * Defining a macro to disable the code analyzer plugin 
  * (this header file is compiled as normal C++ code without additional analysis by the compiler plugin)
  */
 
 /**
- * @def MEMSAFE_PROFILE("file_name_profile")
+ * @def TRUSTED_PROFILE("file_name_profile")
  * 
  * Select safety profile *(load from file not implemented)*.
  * Empty mane - reset to default profile.
  */
 
 /**
- * @def MEMSAFE_ERROR_TYPE("full:class::name")
+ * @def TRUSTED_ERROR_TYPE("full:class::name")
  * 
  * The fully qualified name of the class that will generate the error message 
  * when used (or when using a class derived from the specified one).
  */
 
 /**
- * @def MEMSAFE_WARNING_TYPE("full:class::name")
+ * @def TRUSTED_WARNING_TYPE("full:class::name")
  * 
  * The fully qualified name of the class that will generate the warning message 
  * when used (or when using a class derived from the specified one).
  */
 
 /**
- * @def MEMSAFE_SHARED_TYPE("full:class::name")
+ * @def TRUSTED_SHARED_TYPE("full:class::name")
  * 
  * The fully qualified name of a class that contains a strong pointer
  * to shared data whose ownership is to be controlled at the syntax level.
  */
 
 /**
- * @def MEMSAFE_AUTO_TYPE("full:class::name")
+ * @def TRUSTED_AUTO_TYPE("full:class::name")
  * 
  * The fully qualified name of a class that contains a strong pointer 
  * to an automatic (temporary) variable whose ownership must be controlled at the syntax level.
  */
 
 /**
- * @def MEMSAFE_INVALIDATE_FUNC("unsafe function name")
+ * @def TRUSTED_INVALIDATE_FUNC("unsafe function name")
  * The name of a function that, when passed as an argument to a base object, 
  * always causes previously obtained references and iterators to be invalidated,
- * regardless of the default settings @ref MEMSAFE_NONCONST_ARG
+ * regardless of the default settings @ref TRUSTED_NONCONST_ARG
  * such as std::swap, std::move  etc.
  */
 
 
-namespace memsafe { // Begin define memory safety classes
+namespace trust { // Begin define memory safety classes
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-    class memsafe_error : public std::runtime_error {
+    class trust_error : public std::runtime_error {
     public:
 
-        memsafe_error(std::string_view msg) : std::runtime_error(msg.begin()) {
+        trust_error(std::string_view msg) : std::runtime_error(msg.begin()) {
         }
 
     };
@@ -239,7 +240,7 @@ namespace memsafe { // Begin define memory safety classes
 
         static void timeout_set_error(const SyncTimeoutType &timeout) {
             if (timeout != SyncTimeoutDeedlock) {
-                throw memsafe_error("Timeout is not applicable for this object type!");
+                throw trust_error("Timeout is not applicable for this object type!");
             }
         }
 
@@ -387,10 +388,10 @@ namespace memsafe { // Begin define memory safety classes
         static Locker<V, SharedType> make_auto(SharedType * shared, bool read_only, const SyncTimeoutType &timeout = SyncTimeoutDeedlock) {
             if constexpr (!std::is_same_v<Sync<V>, DataType>) { // The Sync class is virtual
                 if (!shared || !shared->get()) {
-                    throw memsafe_error("Object missing (null pointer exception)");
+                    throw trust_error("Object missing (null pointer exception)");
                 }
                 if (!shared->get()->TryLock(read_only, timeout)) {
-                    throw memsafe_error(std::format("try_lock{} timeout", read_only ? " read only" : ""));
+                    throw trust_error(std::format("try_lock{} timeout", read_only ? " read only" : ""));
                 }
             }
             return Locker<V, SharedType> (*shared);
@@ -426,7 +427,7 @@ namespace memsafe { // Begin define memory safety classes
         //        template < typename = std::enable_if<std::is_trivially_copyable_v < V >> >
         //        inline SharedType & operator=(SharedType & s) {
         //            auto guard_lock = lock_const();
-        //            return this->memsafe::shared_ptr<S < V>>::operator*().data;
+        //            return this->trust::shared_ptr<S < V>>::operator*().data;
         //        }
         //
 
@@ -510,7 +511,7 @@ namespace memsafe { // Begin define memory safety classes
 
         inline void check_thread() {
             if (m_thread_id != std::this_thread::get_id()) {
-                throw memsafe_error("Using a single thread variable in another thread!");
+                throw trust_error("Using a single thread variable in another thread!");
             }
         }
 
@@ -646,7 +647,7 @@ namespace memsafe { // Begin define memory safety classes
 
             if (!checkCircularReference(m_instance, ptr)) {
 
-                throw memsafe_error("Circular reference exception");
+                throw trust_error("Circular reference exception");
             }
 
             assert(&owner != ptr);
@@ -656,7 +657,7 @@ namespace memsafe { // Begin define memory safety classes
         Class<V> & operator=(Class<V> & copy) {
             // Check for a copy of another field in your own object
             if (m_instance == copy.m_instance) {
-                throw memsafe_error("Copy of another field exception");
+                throw trust_error("Copy of another field exception");
             }
             *this = copy.m_field.get(); // Call Class<V> & operator=(V *cls)
 
@@ -665,7 +666,7 @@ namespace memsafe { // Begin define memory safety classes
 
         Class<V> & operator=(V * cls) {
             if (!checkCircularReference(m_instance, cls)) {
-                throw memsafe_error("Circular reference exception");
+                throw trust_error("Circular reference exception");
             }
             m_field = std::shared_ptr<V>(cls);
 
@@ -677,7 +678,7 @@ namespace memsafe { // Begin define memory safety classes
 
                 return *temp;
             }
-            throw memsafe_error("null pointer exception");
+            throw trust_error("null pointer exception");
         }
 
         inline const V& operator*() const {
@@ -685,7 +686,7 @@ namespace memsafe { // Begin define memory safety classes
 
                 return *temp;
             }
-            throw memsafe_error("null pointer exception");
+            throw trust_error("null pointer exception");
         }
 
         Weak<Class < V >> weak() {
@@ -961,7 +962,7 @@ namespace memsafe { // Begin define memory safety classes
      * Macro for creating a deferred call to a class method. 
      * Used to safely work with data types listed using the macro.
      * 
-     * Method arguments cannot be of types from the list @ref MEMSAFE_INVALIDATE
+     * Method arguments cannot be of types from the list @ref TRUSTED_INVALIDATE
      * 
      * Someday, using static reflection, the same thing can be done without macros.
      * 
@@ -1051,42 +1052,42 @@ namespace memsafe { // Begin define memory safety classes
      * 
      */
 
-    MEMSAFE_PROFILE(""); // Reset to default profile
+    TRUSTED_PROFILE(""); // Reset to default profile
 
-    MEMSAFE_ERROR_TYPE("std::auto_ptr");
-    MEMSAFE_ERROR_TYPE("std::shared_ptr");
+    TRUSTED_ERROR_TYPE("std::auto_ptr");
+    TRUSTED_ERROR_TYPE("std::shared_ptr");
 
-    MEMSAFE_WARNING_TYPE("std::auto_ptr");
-    MEMSAFE_WARNING_TYPE("std::shared_ptr");
+    TRUSTED_WARNING_TYPE("std::auto_ptr");
+    TRUSTED_WARNING_TYPE("std::shared_ptr");
 
-    MEMSAFE_SHARED_TYPE("std::shared_ptr");
-    MEMSAFE_SHARED_TYPE("memsafe::Shared");
+    TRUSTED_SHARED_TYPE("std::shared_ptr");
+    TRUSTED_SHARED_TYPE("trust::Shared");
 
-    MEMSAFE_AUTO_TYPE("memsafe::Locker");
-    MEMSAFE_AUTO_TYPE("__gnu_cxx::__normal_iterator");
-    MEMSAFE_AUTO_TYPE("std::reverse_iterator");
+    TRUSTED_AUTO_TYPE("trust::Locker");
+    TRUSTED_AUTO_TYPE("__gnu_cxx::__normal_iterator");
+    TRUSTED_AUTO_TYPE("std::reverse_iterator");
 
     /*
      * For a basic_string_view str, pointers, iterators, and references to elements of str are invalidated 
      * when an operation invalidates a pointer in the range [str.data(), str.data() + str.size()).
      */
-    MEMSAFE_AUTO_TYPE("std::basic_string_view");
+    TRUSTED_AUTO_TYPE("std::basic_string_view");
     /*
      * For a span s, pointers, iterators, and references to elements of s are invalidated 
      * when an operation invalidates a pointer in the range [s.data(), s.data() + s.size()). 
      */
-    MEMSAFE_AUTO_TYPE("std::span");
+    TRUSTED_AUTO_TYPE("std::span");
 
 
-    MEMSAFE_INVALIDATE_FUNC("std::swap");
-    MEMSAFE_INVALIDATE_FUNC("std::move");
+    TRUSTED_INVALIDATE_FUNC("std::swap");
+    TRUSTED_INVALIDATE_FUNC("std::move");
 
     // End define memory safety classes
-#if !defined(MEMSAFE_DISABLE)    
-    MEMSAFE_STATUS("enable"); // Enable memory safety plugin
+#if !defined(TRUSTED_DISABLE)    
+    TRUSTED_STATUS("enable"); // Enable memory safety plugin
 #endif
 
-} // namespace memsafe
+} // namespace trust
 
 
-#endif // INCLUDED_MEMSAFE_H_
+#endif // INCLUDED_TRUSTED_H_

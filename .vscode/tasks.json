@@ -9,7 +9,7 @@
                 "--build",
                 "build",
                 "--target",
-                "memsafe_unittest"
+                "trusted-cpp_unittest"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -27,7 +27,7 @@
             "problemMatcher": [
                 "$gcc"
             ],
-            "detail": "Build the memsafe plugin and unit tests"
+            "detail": "Build the trust plugin and unit tests"
         },
         {
             "label": "Run Tests Tusted-CPP",
@@ -87,14 +87,14 @@
             "command": "bash",
             "args": [
                 "-c",
-                "cmake --build build --target memsafe_unittest && cmake --build build --target run_tests"
+                "cmake --build build --target trusted-cpp_unittest && cmake --build build --target run_tests"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": true
             },
             "presentation": {
                 "echo": true,

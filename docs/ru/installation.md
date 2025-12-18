@@ -40,14 +40,14 @@ cmake ..
 make
 ```
 
-Это соберет как плагин Clang (`memsafe_clang.so`), так и исполняемый файл для тестов.
+Это соберет как плагин Clang (`trusted-cpp_clang.so`), так и исполняемый файл для тестов.
 
 ## Использование плагина
 
 После сборки вы можете использовать плагин с clang++ для анализа вашего кода на C++:
 
 ```bash
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-disable ваш_файл.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-disable ваш_файл.cpp
 ```
 
 Замените `ваш_файл.cpp` на путь к вашему исходному файлу C++.
@@ -67,18 +67,18 @@ clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin 
 Пример анализа циклических ссылок:
 ```bash
 # Первый проход
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-write -fsyntax-only ваш_файл.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-write -fsyntax-only ваш_файл.cpp
 
 # Второй проход
-clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin -Xclang memsafe -Xclang -plugin-arg-memsafe -Xclang circleref-read ваш_файл.cpp
+clang++ -std=c++20 -Xclang -load -Xclang ./trusted-cpp_clang.so -Xclang -add-plugin -Xclang trust -Xclang -plugin-arg-trust -Xclang circleref-read ваш_файл.cpp
 ```
 
 ## Использование библиотеки
 
-Включите заголовочный файл `memsafe.h` в ваши файлы C++ для использования возможностей библиотеки:
+Включите заголовочный файл `trust.h` в ваши файлы C++ для использования возможностей библиотеки:
 
 ```cpp
-#include "memsafe.h"
+#include "trust.h"
 
 // Ваш код здесь
 ```
@@ -90,7 +90,7 @@ clang++ -std=c++20 -Xclang -load -Xclang ./memsafe_clang.so -Xclang -add-plugin 
 Для запуска тестов соберите исполняемый файл для тестов и запустите его:
 
 ```bash
-./memsafe_test
+./trusted-cpp_test
 ```
 
 Это выполнит все модульные тесты для библиотеки и плагина Trusted-CPP.
